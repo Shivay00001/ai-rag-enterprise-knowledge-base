@@ -1,26 +1,66 @@
-
-# Private/Secret files
-.env
-.env.*
-*.secret
-*.key
-credentials.json
-google-services.json
-service-account.json
-secrets.py
-api_keys.py
-config_private.py
-
-# Build/OS
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-node_modules/
-.DS_Store
-*.log
-venv/
-.venv/
-dist/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
 build/
-*.spec
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# MyPy
+.mypy_cache/
+
+# Data
+data/
 *.db
-*.sqlite3
+*.sqlite
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env.local
+.env.production
+*.pem
+*.key

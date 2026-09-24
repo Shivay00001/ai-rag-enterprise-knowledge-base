@@ -1,50 +1,59 @@
-# Ai Rag Enterprise Knowledge Base
+# ai-rag-enterprise-knowledge-base
 
-Enterprise RAG pipeline: ingest, embed, retrieve, and query with API & Docker
+Real retrieval-augmented generation API. Upload `.txt`/`.md` documents, they are
+chunked and indexed with **BM25** (stdlib implementation, no ML framework), and
+questions are answered by a **real LLM call** grounded in the retrieved chunks,
+with numbered citations.
 
-![Language](https://img.shields.io/badge/Language-Python-blue)
-![Status](https://img.shields.io/badge/Status-Active-success)
-![License](https://img.shields.io/badge/License-MIT-green)
+## What it does
 
-## 🚀 Overview
+- `POST /documents/upload` — upload a `.txt`/`.md` file; it is chunked (~800 chars),
+  indexed, and persisted under `./data`.
+- `GET /documents` — list indexed documents.
+- `POST /search` — raw BM25 retrieval (returns scored chunks).
+- `POST /ask` — retrieves top-k chunks, calls the LLM with a strict
+  "answer only from context, cite sources" prompt, returns answer + citations.
 
-Welcome to the **Ai Rag Enterprise Knowledge Base** repository. This project is built to deliver a robust and scalable solution tailored to modern development standards.
+## API key
 
-## ✨ Features
+Live answers need an OpenAI-compatible chat-completions endpoint.
 
-- **High Performance:** Optimized for speed and efficiency.
-- **Scalable Architecture:** Designed to grow with your needs.
-- **Clean Codebase:** Follows best practices and industry standards.
-- **Secure by Default:** Engineered with security in mind.
+| Env var          | Purpose                                  | Default                      |
+|------------------|------------------------------------------|------------------------------|
+| `OPENAI_API_KEY` | **API key** for the LLM call             | (unset)                      |
+| `OPENAI_BASE_URL`| Compatible endpoint base URL             | `https://api.openai.com/v1`  |
+| `OPENAI_MODEL`   | Model name                               | `gpt-4o-mini`                |
+| `RAG_DATA_DIR`   | Document store location                  | `./data`                     |
 
-## 🛠️ Prerequisites
+Without `OPENAI_API_KEY`, `/ask` returns **HTTP 503** with a clear message —
+it never fabricates an answer. Retrieval (`/search`, upload, listing) works
+fully offline.
 
-Ensure you have the following installed in your environment before proceeding:
-- Appropriate runtime/compiler for `Python`
-- Standard development tools
+## Run
 
-## 📦 Installation
+```bash
+pip install -r requirements.txt
+uvicorn main:app --port 8001
+# with a key:
+OPENAI_API_KEY=sk-... uvicorn main:app --port 8001
+```
 
-Follow standard installation steps for `Python` to set up the project locally:
+## Verify
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Shivay00001/ai-rag-enterprise-knowledge-base.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd ai-rag-enterprise-knowledge-base
-   ```
-3. Install dependencies according to the standard `Python` ecosystem.
+```bash
+curl -F "file=@notes.md" http://localhost:8001/documents/upload
+curl -X POST http://localhost:8001/search -H 'Content-Type: application/json' \
+     -d '{"query":"refund window","top_k":3}'
+curl -X POST http://localhost:8001/ask -H 'Content-Type: application/json' \
+     -d '{"question":"What is the refund window?"}'
+```
 
-## 💻 Usage
+## Tests
 
-Run the project using standard execution commands for `Python`. Ensure all environment variables and configurations are set prior to execution.
+```bash
+python -m pytest tests/ -q
+```
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
-
-## 📝 License
-
-This project is licensed under standard terms.
+Tests cover: upload → BM25 retrieval finds the right chunk, `/ask` with no key
+→ honest 503, `/ask` with a dummy key → real upstream 401 surfaced (proves the
+HTTP client is real).

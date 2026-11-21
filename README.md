@@ -1,5 +1,7 @@
 # ai-rag-enterprise-knowledge-base
 
+Built by [VisionQuantech](https://visionquantech.com) — AI agents, apps & tools for small businesses.
+
 Real retrieval-augmented generation API. Upload `.txt`/`.md` documents, they are
 chunked and indexed with **BM25** (stdlib implementation, no ML framework), and
 questions are answered by a **real LLM call** grounded in the retrieved chunks,
